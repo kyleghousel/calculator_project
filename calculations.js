@@ -3,21 +3,24 @@ const keys = calculator.querySelector('.calculatorKeys');
 const display = document.querySelector('.calculator-screen');
 
 keys.addEventListener('click', e => {
-    const key = e.target;
-    const action = key.dataset.action;
     if (e.target.matches('button')) {
         const key = e.target;
         const action = key.dataset.action;
         const keyContent = key.textContent;
         const displayedNum = display.textContent;
         const previousKeyType = calculator.dataset.previousKeyType;
-   
+ 
+//User replaces display content with pressed keys. If/else handles where user is in process
     if (!action) {
         if (displayedNum === '0' || previousKeyType === 'operator') {
             display.textContent = keyContent;
-        } else {
+        } else if (displayedNum !== '0' && previousKeyType === 'operator'){      
+            display.textContent = keyContent;
+        }
+        else {
             display.textContent = displayedNum + keyContent;
         }
+        calculator.dataset.previousKeyType = 'number'
     }
     if (
         action === 'add' ||
@@ -26,42 +29,56 @@ keys.addEventListener('click', e => {
         action === 'divide'
 
     ) {
-        calculator.dataset.previousKeyType = 'operator';
-        calculator.dataset.firstValue = displayedNum;
-        calculator.dataset.operator = action;
-    }
-    if (action === 'decimal') {
-        display.textContent = displayedNum + '.'
-    }
-    if (action === 'all-clear') {
-        display.textContent = 0;
-    }
-    if (action === 'calculate') {
         const firstValue = calculator.dataset.firstValue;
         const operator = calculator.dataset.operator;
         const secondValue = displayedNum;
 
-        display.textContent = operate(operator, firstValue, secondValue)
+//Should allow continual calculations pressing operators in between numbers
+
+        if (firstValue && operator && previousKeyType !== 'operator') {
+            const calculatedValue = operate(firstValue, operator, secondValue);
+            display.textContent = calculatedValue;
+            calculator.dataset.firstValue = calculatedValue;
+        } else {
+            calculator.dataset.firstValue = displayedNum;
+        }
+        
+        calculator.dataset.previousKeyType = 'operator';
+        calculator.dataset.firstValue = displayedNum;
+        calculator.dataset.operator = action;
+    }
+
+//Second number can start with decimal but not the specified '0.'
+    if (action === 'decimal') {
+        if (!displayedNum.includes('.')) {
+            display.textContent = displayedNum + '.';
+        } else if (previousKeyType === 'operator') {
+            display.textContent = '0.';
+        }
+        calculator.dataset.previousKeyType = 'decimal'
+    }
+    if (action === 'all-clear') {
+        display.textContent = '0';
+        firstValue = 0;
+        secondValue = 0;
+        calculator.dataset.previousKeyType = 'clear'
+    }
+    if (action === 'calculate') {
+        let firstValue = calculator.dataset.firstValue;
+        const operator = calculator.dataset.operator;
+        const secondValue = displayedNum;
+        if (firstValue){
+            if (previousKeyType === 'calculate') {
+                firstValue = displayedNum;
+            }
+        display.textContent = operate(firstValue, operator, secondValue)
+        }
+        calculator.dataset.previousKeyType = 'calculate'
     }
    }
 
 });
 
-
-function clearAll () {
-    clear.addEventListener('click', (e) => {
-        screen.innerText = '0';
-    })
-}
-
-
-document.addEventListener('click', function onClick(e) {
-    if (e.keyCode === 49) {
-        screen.innerText = '1';
-    }
-    console.log(e);
-
-});
 
 
 function add (a, b) {
@@ -81,7 +98,7 @@ function divide (a, b) {
     return a / b;
 }
 
-function operate(operator, a, b) {
+function operate(a, operator, b) {
     a = parseFloat(a)
     b = parseFloat(b)
     switch (operator) {
