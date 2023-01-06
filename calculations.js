@@ -31,14 +31,21 @@ keys.addEventListener('click', e => {
     ) {
         const firstValue = calculator.dataset.firstValue;
         const operator = calculator.dataset.operator;
-        const secondValue = displayedNum;
+
+
+        if (previousKeyType === 'operator'){
+            secondValue = keyContent;
+        } else {
+            secondValue = displayedNum;
+        }
 
 //Should allow continual calculations pressing operators in between numbers
 
         if (firstValue && operator && previousKeyType !== 'operator') {
-            const calculatedValue = operate(firstValue, operator, secondValue);
+            const calculatedValue = operate(firstValue, operator, secondValue); 
+            //bug on this line 5 x 5 = 25, then pressing x automatically causes another x 5. operate gets called twice? b is stored as '25' secondValue = displayedNum
             display.textContent = calculatedValue;
-            calculator.dataset.firstValue = calculatedValue;
+            calculator.dataset.firstValue = calculatedValue; 
         } else {
             calculator.dataset.firstValue = displayedNum;
         }
@@ -61,6 +68,7 @@ keys.addEventListener('click', e => {
         display.textContent = '0';
         firstValue = 0;
         secondValue = 0;
+        displayedNum = 0;
         calculator.dataset.previousKeyType = 'clear'
     }
     if (action === 'calculate') {
@@ -70,7 +78,7 @@ keys.addEventListener('click', e => {
         if (firstValue){
             if (previousKeyType === 'calculate') {
                 firstValue = displayedNum;
-            }
+            } 
         display.textContent = operate(firstValue, operator, secondValue)
         }
         calculator.dataset.previousKeyType = 'calculate'
